@@ -1,0 +1,38 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "target": "es2016",
+    "module": "commonjs",
+    "strict": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "moduleResolution": "Node",
+    "outDir": "./dist/src",
+    "baseUrl": "./src",
+    "paths": {
+      "@fnd/*": [
+        "infrastructure/*"
+      ],
+      "@domain/*": [
+        "domain/*"
+      ]
+    }
+  },
+  "include": [
+    "typings.d.ts",
+    "src/**/*.ts",
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "files": [
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json"
+  ]
+}
