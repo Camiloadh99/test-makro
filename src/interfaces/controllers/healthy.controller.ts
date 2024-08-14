@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import * as info from '../../../package.json';
-import { HTTPCodesEnum } from '@domain/errors/enums/error.enum';
-import { ApiResponse } from '@domain/dto/responses/api-response';
 
 const svc = process.env.APP_ID || 'Service';
 const env = process.env.NODE_ENV || 'development';
@@ -21,8 +19,8 @@ const healthy: Healthy = {
 export class HealthyController {
   get(req: Request, res: Response, next: NextFunction) {
     try {
-      res.status(HTTPCodesEnum.SUCCESSFUL);
-      res.send(new ApiResponse<Healthy>(HTTPCodesEnum.SUCCESSFUL, healthy));
+      res.status(200);
+      res.send(healthy);
     } catch (error) {
       next(error);
     }
@@ -30,8 +28,8 @@ export class HealthyController {
 
   readiness(req: Request, res: Response, next: NextFunction): void {
     try {
-      res.status(HTTPCodesEnum.SUCCESSFUL);
-      res.send(new ApiResponse<Healthy>(HTTPCodesEnum.SUCCESSFUL, healthy));
+      res.status(200);
+      res.send(healthy);
     } catch (error) {
       next(error);
     }
@@ -39,8 +37,8 @@ export class HealthyController {
 
   health(req: Request, res: Response, next: NextFunction): void {
     try {
-      res.status(HTTPCodesEnum.SUCCESSFUL);
-      res.send(new ApiResponse<Healthy>(HTTPCodesEnum.SUCCESSFUL, healthy));
+      res.status(200);
+      res.send(healthy);
     } catch (error) {
       next(error);
     }
