@@ -1,4 +1,3 @@
-/* eslint-disable comma-dangle */
 /* eslint-disable no-undef */
 
 let xlsxFile = null;
@@ -38,7 +37,6 @@ window.Dropzone.prototype.uploadFiles = function (files) {
   self.processQueue();
 };
 
-//Install npm i dropzone
 const dropzone = new Dropzone('#dropzone-basic', { url: '/file/post' });
 
 const showSections = ({ sectionShow, sectionHidde }) => {
