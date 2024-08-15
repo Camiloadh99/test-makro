@@ -25,7 +25,6 @@ const loadenv = async (debug = false) => {
     debug = false;
     path = '.env.staging';
   }
-  console.log({ path });
 
   console.log(`Loading environment variables from ${path} for ${ENV}`);
   dotenv.config({ debug, path });
