@@ -39,7 +39,7 @@
                 <div class="card mb-6">
                   <!-- Upload File  -->
                   <div class="card-body upload-section show">
-                    <form action="/upload" class="dropzone needsclick" id="dropzone-basic">
+                    <form action="/api/v1/file-sheets/process" method="post" class="dropzone needsclick" id="dropzone-basic">
                       <div class="dz-message needsclick">
                         <img src="./assets/Upload.png" alt="Upload" class="upload-img" />
                         <div class="dropzone-container">
@@ -87,6 +87,6 @@
       </main>
     </div>
 
-    <script src="./js/dropzone-config.js"></script>
+    <script type="module" src="./js/dropzone-config.js"></script>
   </body>
 </html>

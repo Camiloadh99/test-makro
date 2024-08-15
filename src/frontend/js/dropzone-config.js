@@ -44,17 +44,38 @@ const showSections = ({ sectionShow, sectionHidde }) => {
   document.querySelector(sectionShow).style.display = 'block';
 };
 
-const handleSendFile = () => {
-  document.querySelector('.loader-container').style.display = 'flex';
+const handleSendFile = async () => {
+  try {
+    document.querySelector('.loader-container').style.display = 'flex';
+    const host = window.location.origin;
+    const url = `${host}/api/v1/file-sheets/process`;
 
-  setTimeout(() => {
-    console.log(xlsxFile);
+    const formDataBody = new FormData();
+    formDataBody.append('file', xlsxFile);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formDataBody
+    });
+
+    const blob = await response.blob();
+    const urlBlob = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = urlBlob;
+    a.download = 'response.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(urlBlob);
+
     document.querySelector('.loader-container').style.display = 'none';
     showSections({
       sectionShow: '.success-section',
       sectionHidde: '.upload-section'
     });
-  }, 1000);
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 //**Buttons */
