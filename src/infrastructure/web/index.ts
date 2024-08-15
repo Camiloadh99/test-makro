@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import appRouter from './routes';
 import path from 'path';
+import { env } from '@fnd/libs/env/env';
 
 const createServer = () => {
   const app = express();
@@ -14,8 +15,8 @@ const createServer = () => {
 
   app.use('/api', appRouter);
 
-  app.listen(3001, () => {
-    console.log('Server is running on port 3001');
+  app.listen(env.PORT, () => {
+    console.log(`Server is running on port ${env.PORT}`);
   });
 };
 

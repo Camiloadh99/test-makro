@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import * as info from '../../../package.json';
+import { env } from '@fnd/libs/env';
 
-const svc = process.env.APP_ID || 'Service';
-const env = process.env.NODE_ENV || 'development';
+const svc = env.APP_ID || 'Service';
+const environment = env.NODE_ENV || 'development';
 
 export type Healthy = {
   message: string;
@@ -12,7 +13,7 @@ export type Healthy = {
 
 const healthy: Healthy = {
   message: `${svc} OK 👽`,
-  environment: env,
+  environment: environment,
   version: info.version
 };
 
