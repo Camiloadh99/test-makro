@@ -3,6 +3,9 @@ import { read, utils, WorkBook, WorkSheet, write } from 'xlsx';
 export type readXlsxFile = (buffer: ArrayBuffer) => Promise<WorkBook>;
 export type writeXlsxFile = (workbook: WorkBook) => Uint8Array;
 export type convertJsonData = (worksheet: WorkSheet) => unknown[];
+export type arrayToSheetFile = (array: unknown[][]) => WorkSheet;
+export type convertToWorkBookFile = (newWorkbook: WorkBook, worksheet: WorkSheet, sheetName: string) => WorkBook;
+export type createWorkBookFile = () => WorkBook;
 
 // mapear lo necesario
 export const readXlsx: readXlsxFile = async (data: ArrayBuffer) => {
@@ -19,4 +22,17 @@ export const writeXlsx: writeXlsxFile = (workbook: WorkBook) => {
 export const convertToJsonData: convertJsonData = (worksheet: WorkSheet) => {
   const jsonData = utils.sheet_to_json(worksheet, { header: 1 });
   return jsonData;
+};
+
+export const createWorkBook: createWorkBookFile = () => {
+  return utils.book_new();
+};
+
+export const convertArrayToSheet: arrayToSheetFile = (arrayOfArrays: unknown[][]) => {
+  return utils.aoa_to_sheet(arrayOfArrays);
+};
+
+export const convertToWorkBook: convertToWorkBookFile = (newWorkbook: WorkBook, worksheet: WorkSheet, sheetName: string) => {
+  utils.book_append_sheet(newWorkbook, worksheet, sheetName);
+  return newWorkbook;
 };
