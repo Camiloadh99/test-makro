@@ -1,9 +1,9 @@
-import loadenv from 'infrastructure/libs/env';
+import loadenv, { env } from '@fnd/libs/env/env';
 import createServer from './infrastructure/web';
 
 const runApp = async () => {
   await loadenv();
-  console.log('Environment variables loaded', process.env.NODE_ENV);
+  console.log('Environment variables loaded', env.NODE_ENV);
   createServer();
   console.log('Server is running');
 };
