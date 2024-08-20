@@ -10,18 +10,18 @@ import {
 type Dependencies = {
   readXlsxFile: readXlsxFile;
   writeXlsxFile: writeXlsxFile;
-  convertToJsonData: convertJsonData;
+  convertWorkSheetToJsonData: convertJsonData;
   convertArrayToSheet: arrayToSheetFile;
-  convertToWorkBook: convertToWorkBookFile;
+  convertWorkSheetToWorkBook: convertToWorkBookFile;
   createWorkBook: createWorkBookFile;
 };
 
 export const build = ({
   readXlsxFile,
   writeXlsxFile,
-  convertToJsonData,
+  convertWorkSheetToJsonData,
   convertArrayToSheet,
-  convertToWorkBook,
+  convertWorkSheetToWorkBook,
   createWorkBook
 }: Dependencies) => {
   const execute = async (xlsxFile: Buffer) => {
@@ -34,9 +34,9 @@ export const build = ({
     workbook.SheetNames.forEach((sheetName) => {
       const worksheet = workbook.Sheets[sheetName];
 
-      const jsonData = convertToJsonData(worksheet); //convertir la hoja a un array con los elementos internos
+      const jsonData = convertWorkSheetToJsonData(worksheet); //convertir la hoja a un array con los elementos internos
       const worksheetToExport = convertArrayToSheet(jsonData as unknown[][]);
-      convertToWorkBook(workbookToExport, worksheetToExport, sheetName);
+      convertWorkSheetToWorkBook(workbookToExport, worksheetToExport, sheetName);
     });
 
     //** Return File */
