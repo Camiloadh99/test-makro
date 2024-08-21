@@ -134,6 +134,13 @@ main {
   display: none !important;
 }
 
+.alert {
+  padding: 20px;
+  background-color: #d1413f; /* Red */
+  color: white;
+  margin-bottom: 15px;
+}
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);
