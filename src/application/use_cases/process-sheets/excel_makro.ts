@@ -86,6 +86,8 @@ export const build = ({
   };
 
   const convertImportSheetToExportSheet = (originalSheetInfoArray: unknown[][], indexOriginalTitleStarts: number): unknown[][] => {
+    if (originalSheetInfoArray.length === 0) return originalSheetInfoArray; //Columnas vacias no se procesan
+
     const newJsonDataToExport: unknown[][] = [];
 
     //Agregar nuevos titulos (solo los que necesitan)
@@ -110,9 +112,8 @@ export const build = ({
         if (title.includes('Porcentaje')) {
           const discount = copyOfOriginalRowField as string;
           newRow.push(discount ? `${+discount * 100}%` : copyOfOriginalRowField);
-        } else if (title.includes('Unidades Disponibles')) {
-          const amount = copyOfOriginalRowField as number;
-          newRow.push(amount ? `${parseFloat(amount.toFixed())}` : copyOfOriginalRowField);
+        } else if (typeof copyOfOriginalRowField === 'number') {
+          newRow.push(`${parseFloat(copyOfOriginalRowField?.toFixed())}`);
         } else {
           newRow.push(copyOfOriginalRowField);
         }
