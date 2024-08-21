@@ -5,10 +5,10 @@ import { NextFunction, Request, Response } from 'express';
 
 const upload = multer();
 
-const TOO_LARGE_FILE_RESPONSE = 'File size too large, max 15MB';
+const TOO_LARGE_FILE_RESPONSE = 'File size too large, max 200MB';
 const NOT_VALID_FILE_RESPONSE = 'Invalid file extension, only XLSX file allowed';
 const NO_FILES_RESPONSE = 'No file uploaded';
-const TOO_LARGE_FILE_SIZE = 15000000;
+const TOO_LARGE_FILE_SIZE = 200000000;
 
 const uploadFileMiddleware = () => {
   const middleware = (req: Request, res: Response, next: NextFunction) => {
@@ -17,7 +17,6 @@ const uploadFileMiddleware = () => {
       if (req.files.length === 0) throw new ErrorBadRequest(NO_FILES_RESPONSE);
 
       const file = req.files[0];
-      console.log(file.mimetype);
 
       if (!ALLOWED_MIMETYPES.includes(file.mimetype)) throw new ErrorBadRequest(NOT_VALID_FILE_RESPONSE);
 
