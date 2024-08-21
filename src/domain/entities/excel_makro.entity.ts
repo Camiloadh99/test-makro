@@ -17,7 +17,7 @@ export const XLSX_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.
 
 export const ALLOWED_MIMETYPES = Object.freeze([XLSX_CONTENT_TYPE]);
 
-export const excelFieldsTitles = [
+export const excelFieldsTitles = Object.freeze([
   'Pack RMS',
   'Sucursal',
   'Proveedor',
@@ -76,9 +76,9 @@ export const excelFieldsTitles = [
   'Estimado Venta',
   'Unidades Disponibles',
   'Q Maxima por Cliente'
-];
+]);
 
-export const excelExportedTitles = [
+export const excelExportedTitles = Object.freeze([
   'Check Revision',
   'CÓD. Código / Unidades Disponibles UND*',
   'Departamento',
@@ -95,9 +95,9 @@ export const excelExportedTitles = [
   'Escala',
   'Unidades Disponibles',
   'Q Maxima por Cliente'
-];
+]);
 
-export const excelExportedTitlesColors = [
+export const excelExportedTitlesColors = Object.freeze([
   '999999',
   '375623',
   '375623',
@@ -114,9 +114,9 @@ export const excelExportedTitlesColors = [
   'c00000',
   'c00000',
   'c00000'
-];
+]);
 
-export const colors = [
+export const colors = Object.freeze([
   'fbf8cc',
   'fde4cf',
   'ffcfd2',
@@ -144,4 +144,4 @@ export const colors = [
   'b3b4b1',
   'd1d1d6',
   'ccb05f'
-];
+]);

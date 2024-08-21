@@ -23,6 +23,9 @@ type Dependencies = {
   encodeCell: encodeCellFile;
 };
 
+const ROW_TITLE_FOR_COLORS = 'No Oferta';
+const ROW_TITLE_PERCENTAGE = 'Porcentaje';
+
 export const build = ({
   readXlsxFile,
   writeXlsxFile,
@@ -51,7 +54,7 @@ export const build = ({
       const indexOriginSheetTitleStarts = findIndexOfArrayOfArrayByString(originalSheetInfoArray as unknown[][], `${excelFieldsTitles[0]}`);
 
       validateAllColumnsExists(originalSheetInfoArray as unknown[][], result, sheetName, indexOriginSheetTitleStarts);
-      const convertedData = convertImportSheetToExportSheet(originalSheetInfoArray as unknown[][], indexOriginSheetTitleStarts);
+      const convertedData = processSheet(originalSheetInfoArray as unknown[][], indexOriginSheetTitleStarts);
 
       if (result.errors.length > 0) return;
 
@@ -93,7 +96,7 @@ export const build = ({
     return result;
   };
 
-  const convertImportSheetToExportSheet = (
+  const processSheet = (
     originalSheetInfoArray: unknown[][],
     indexOriginalTitleStarts: number
   ): { noOfferByRow: number[]; newFile: unknown[][] } => {
@@ -105,27 +108,48 @@ export const build = ({
     //Agregar nuevos titulos (solo los que necesitan)
     const oldTitles = excelFieldsTitles;
     const newTitles = excelExportedTitles;
-    newJsonDataToExport.push(newTitles);
 
+    newJsonDataToExport.push(newTitles as string[]);
+
+    processRow(
+      indexOriginalTitleStarts,
+      originalSheetInfoArray,
+      noOfferByRow,
+      newJsonDataToExport,
+      oldTitles as (number | string)[],
+      newTitles as string[]
+    );
+
+    return { newFile: newJsonDataToExport, noOfferByRow: noOfferByRow };
+  };
+
+  const processRow = (
+    indexOriginalTitleStarts: number,
+    originalSheetInfoArray: unknown[][],
+    noOfferByRow: number[],
+    newJsonDataToExport: unknown[][],
+    oldTitles: (string | number)[],
+    newTitles: string[]
+  ) => {
     //Agregar los datos de la hoja de importacion a la hoja de exportacion
     for (let i = indexOriginalTitleStarts + 1; i < originalSheetInfoArray.length; i++) {
       const originalRow = originalSheetInfoArray[i];
 
-      // Si una fila esta completamente basia no se agrega
+      // Si una fila esta completamente vacía no se agrega
       const isEmptyRow = originalRow.every((cell) => cell === null || cell === undefined || cell === '');
       if (isEmptyRow) continue;
 
       const newRow: unknown[] = [];
 
-      newTitles.forEach((title) => {
-        const indexOnOldTitles = oldTitles.indexOf(title) + 1;
+      newTitles.forEach((newTitle) => {
+        const indexOnOldTitles = oldTitles.indexOf(newTitle) + 1;
         const copyOfOriginalRowField = originalRow[indexOnOldTitles];
 
-        if (title === 'No Oferta') {
+        if (newTitle === ROW_TITLE_FOR_COLORS) {
           noOfferByRow.push(copyOfOriginalRowField as number);
         }
 
-        if (title.includes('Porcentaje')) {
+        if (newTitle.includes(ROW_TITLE_PERCENTAGE)) {
           const discount = copyOfOriginalRowField as string;
           newRow.push(discount ? `${+discount * 100}%` : copyOfOriginalRowField || '');
         } else if (typeof copyOfOriginalRowField === 'number') {
@@ -137,8 +161,6 @@ export const build = ({
 
       newJsonDataToExport.push(newRow);
     }
-
-    return { newFile: newJsonDataToExport, noOfferByRow: noOfferByRow };
   };
 
   const applyStyles = (worksheet: WorkSheet, noOfferByRow: number[]) => {
