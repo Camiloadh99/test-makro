@@ -3,6 +3,8 @@ import cors from 'cors';
 import appRouter from './routes';
 import path from 'path';
 import { env } from '@fnd/libs/env/env';
+import { buildOpenApiMiddelware } from '@fnd/libs/open-api';
+import { swaggerDocument, swaggerUi } from '@fnd/libs/swagger-ui';
 
 const createServer = () => {
   const app = express();
@@ -10,6 +12,10 @@ const createServer = () => {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true }));
   app.use(cors());
+
+  app.use('/spec', express.static('./oas3.yaml'));
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  app.use(buildOpenApiMiddelware());
 
   app.use(express.static(path.join(__dirname, './../../frontend')));
 
