@@ -5,7 +5,9 @@ import {
   convertWorkSheetToJsonData,
   convertArrayToSheet,
   convertWorkSheetToWorkBook,
-  createWorkBook
+  createWorkBook,
+  decodeSheetRange,
+  encodeCell
 } from '@fnd/libs/process-xlsx';
 
 const processExcelMakro = buildProcessExcelMakro({
@@ -14,7 +16,9 @@ const processExcelMakro = buildProcessExcelMakro({
   convertWorkSheetToJsonData: convertWorkSheetToJsonData,
   convertArrayToSheet: convertArrayToSheet,
   convertWorkSheetToWorkBook: convertWorkSheetToWorkBook,
-  createWorkBook: createWorkBook
+  createWorkBook: createWorkBook,
+  decodeSheetRange: decodeSheetRange,
+  encodeCell: encodeCell
 });
 
 export { processExcelMakro };

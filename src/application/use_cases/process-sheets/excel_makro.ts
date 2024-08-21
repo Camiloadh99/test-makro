@@ -1,13 +1,16 @@
-import { excelExportedTitles, excelFieldsTitles, fileResponse } from '@domain/entities/excel_makro.entity';
-import { findIndexOfArrayOfArrayByString } from '@fnd/helpers/array_helpers';
+import { excelExportedTitles, excelExportedTitlesColors, excelFieldsTitles, fileResponse } from '@domain/entities/excel_makro.entity';
+import { findIndexOfArrayOfArrayByString, getColorForNumber } from '@fnd/helpers/array_helpers';
 import {
   arrayToSheetFile,
   convertJsonData,
   convertToWorkBookFile,
   readXlsxFile,
   writeXlsxFile,
-  createWorkBookFile
+  createWorkBookFile,
+  decodeRange,
+  encodeCellFile
 } from '@fnd/libs/process-xlsx';
+import { WorkSheet } from 'xlsx-js-style';
 
 type Dependencies = {
   readXlsxFile: readXlsxFile;
@@ -16,6 +19,8 @@ type Dependencies = {
   convertArrayToSheet: arrayToSheetFile;
   convertWorkSheetToWorkBook: convertToWorkBookFile;
   createWorkBook: createWorkBookFile;
+  decodeSheetRange: decodeRange;
+  encodeCell: encodeCellFile;
 };
 
 export const build = ({
@@ -24,7 +29,9 @@ export const build = ({
   convertWorkSheetToJsonData,
   convertArrayToSheet,
   convertWorkSheetToWorkBook,
-  createWorkBook
+  createWorkBook,
+  decodeSheetRange,
+  encodeCell
 }: Dependencies) => {
   const execute = async (xlsxFile: Buffer) => {
     const result: fileResponse = {
@@ -48,7 +55,8 @@ export const build = ({
 
       if (result.errors.length > 0) return;
 
-      const worksheetToExport = convertArrayToSheet(convertedData as unknown[][]);
+      const worksheetToExport = convertArrayToSheet(convertedData.newFile as unknown[][]);
+      applyStyles(worksheetToExport, convertedData.noOfferByRow);
 
       convertWorkSheetToWorkBook(workbookToExport, worksheetToExport, sheetName);
     });
@@ -85,10 +93,14 @@ export const build = ({
     return result;
   };
 
-  const convertImportSheetToExportSheet = (originalSheetInfoArray: unknown[][], indexOriginalTitleStarts: number): unknown[][] => {
-    if (originalSheetInfoArray.length === 0) return originalSheetInfoArray; //Columnas vacias no se procesan
+  const convertImportSheetToExportSheet = (
+    originalSheetInfoArray: unknown[][],
+    indexOriginalTitleStarts: number
+  ): { noOfferByRow: number[]; newFile: unknown[][] } => {
+    if (originalSheetInfoArray.length === 0) return { newFile: originalSheetInfoArray, noOfferByRow: [] }; //Columnas vacias no se procesan
 
     const newJsonDataToExport: unknown[][] = [];
+    const noOfferByRow: number[] = [];
 
     //Agregar nuevos titulos (solo los que necesitan)
     const oldTitles = excelFieldsTitles;
@@ -109,20 +121,91 @@ export const build = ({
         const indexOnOldTitles = oldTitles.indexOf(title) + 1;
         const copyOfOriginalRowField = originalRow[indexOnOldTitles];
 
+        if (title === 'No Oferta') {
+          noOfferByRow.push(copyOfOriginalRowField as number);
+        }
+
         if (title.includes('Porcentaje')) {
           const discount = copyOfOriginalRowField as string;
-          newRow.push(discount ? `${+discount * 100}%` : copyOfOriginalRowField);
+          newRow.push(discount ? `${+discount * 100}%` : copyOfOriginalRowField || '');
         } else if (typeof copyOfOriginalRowField === 'number') {
           newRow.push(`${parseFloat(copyOfOriginalRowField?.toFixed())}`);
         } else {
-          newRow.push(copyOfOriginalRowField);
+          newRow.push(copyOfOriginalRowField || '');
         }
       });
 
       newJsonDataToExport.push(newRow);
     }
 
-    return newJsonDataToExport;
+    return { newFile: newJsonDataToExport, noOfferByRow: noOfferByRow };
+  };
+
+  const applyStyles = (worksheet: WorkSheet, noOfferByRow: number[]) => {
+    const range = decodeSheetRange(worksheet);
+    const rowCount = range.e.r;
+    const columnCount = range.e.c;
+
+    const columnWidths = Array.from({ length: columnCount + 1 }, () => ({ wpx: 150 }));
+    const dataRowHeight = Array.from({ length: rowCount }, () => ({ hpt: 30 }));
+    worksheet['!cols'] = columnWidths;
+    worksheet['!rows'] = dataRowHeight;
+
+    const borderStyles = {
+      top: { style: 'thin', color: { rgb: '000000' } },
+      bottom: { style: 'thin', color: { rgb: '000000' } },
+      left: { style: 'thin', color: { rgb: '000000' } },
+      right: { style: 'thin', color: { rgb: '000000' } }
+    };
+    const fontStyles = {
+      name: 'Arial',
+      sz: 12
+    };
+
+    for (let row = 0; row <= rowCount; row++) {
+      for (let col = 0; col <= columnCount; col++) {
+        const cellRef = encodeCell(row, col);
+
+        if (worksheet[cellRef]) {
+          if (row === 0) {
+            worksheet[cellRef].s = {
+              alignment: {
+                horizontal: 'center',
+                wrapText: true
+              },
+              font: {
+                ...fontStyles,
+                color: { rgb: 'FFFFFF' },
+                weight: 'bold'
+              },
+              border: borderStyles,
+              fill: {
+                fgColor: { rgb: excelExportedTitlesColors[col] },
+                patternType: 'solid'
+              }
+            };
+          } else {
+            // Add this format to every cell
+            worksheet[cellRef].s = {
+              alignment: {
+                horizontal: 'left',
+                wrapText: true
+              },
+              font: {
+                ...fontStyles,
+                color: { rgb: '000000' }
+              },
+              border: borderStyles,
+              fill: {
+                fgColor: { rgb: getColorForNumber(noOfferByRow[row - 1]) },
+                patternType: 'solid'
+              }
+            };
+          }
+        }
+      }
+    }
+    return worksheet;
   };
 
   return execute;
