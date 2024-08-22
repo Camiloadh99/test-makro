@@ -1,13 +1,3 @@
-interface ExcelMakro {
-  id: number;
-  name: string;
-  description: string;
-  code: string;
-  created_at: Date;
-  updated_at: Date;
-  deleted_at: Date;
-}
-
 export interface fileResponse {
   file: Uint8Array | null;
   errors: string[];
@@ -17,70 +7,7 @@ export const XLSX_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.
 
 export const ALLOWED_MIMETYPES = Object.freeze([XLSX_CONTENT_TYPE]);
 
-export const excelFieldsTitles = Object.freeze([
-  'Pack RMS',
-  'Sucursal',
-  'Proveedor',
-  'Departamento',
-  'Código',
-  'Descripcion',
-  'Tipo Cliente',
-  'KVI',
-  'No Oferta',
-  'Descripcion Brief',
-  'Tipo Cliente Promoción',
-  'Tipo de Oferta',
-  'Nacional o Regional',
-  1,
-  2,
-  3,
-  4,
-  5,
-  7,
-  8,
-  9,
-  10,
-  11,
-  12,
-  13,
-  14,
-  15,
-  16,
-  17,
-  18,
-  19,
-  20,
-  21,
-  22,
-  23,
-  'Excepciones / Comentarios',
-  'Ctd Stock',
-  'Valor Stock',
-  'Mes N-3',
-  'Mes N-2',
-  'Mes N-1',
-  'Prom Ctd',
-  'Promedio Dias MM',
-  'Unidades a Vender',
-  'Evacuacion de Inventario (SI/NO)',
-  '% Incremento Venta',
-  'PVP Moda',
-  'PVP Regular Sugerido',
-  'PVP Regular con Descuento',
-  'Descuento\r\nen Porcentaje %',
-  'Escala',
-  'Precio con Escala',
-  'PVP Oferta',
-  'Descuento',
-  'Ahorro',
-  'Estimado Venta',
-  'Unidades Disponibles',
-  'Q Maxima por Cliente'
-]);
-
-export const excelExportedTitles = Object.freeze([
-  'Check Revision',
-  'CÓD. Código / Unidades Disponibles UND*',
+export const REQUIRED_FIELDS = Object.freeze([
   'Departamento',
   'Código',
   'Descripcion',
@@ -97,7 +24,9 @@ export const excelExportedTitles = Object.freeze([
   'Q Maxima por Cliente'
 ]);
 
-export const excelExportedTitlesColors = Object.freeze([
+export const EXCEL_EXPORTED_TITLES = Object.freeze(['Check Revision', 'CÓD. Código / Unidades Disponibles UND*', ...REQUIRED_FIELDS]);
+
+export const EXCEL_EXPORTED_TITLE_COLORS = Object.freeze([
   '999999',
   '375623',
   '375623',
@@ -116,7 +45,7 @@ export const excelExportedTitlesColors = Object.freeze([
   'c00000'
 ]);
 
-export const colors = Object.freeze([
+export const COLORS = Object.freeze([
   'fbf8cc',
   'fde4cf',
   'ffcfd2',

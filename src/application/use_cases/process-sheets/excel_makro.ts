@@ -1,5 +1,5 @@
-import { excelExportedTitles, excelExportedTitlesColors, excelFieldsTitles, fileResponse } from '@domain/entities/excel_makro.entity';
-import { findIndexOfArrayOfArrayByString, getColorForNumber } from '@fnd/helpers/array_helpers';
+import { EXCEL_EXPORTED_TITLES, EXCEL_EXPORTED_TITLE_COLORS, fileResponse, REQUIRED_FIELDS } from '@domain/entities/excel_makro.entity';
+import { findIndexOnMatrix, getColorForNumber } from '@fnd/helpers/array_helpers';
 import {
   arrayToSheetFile,
   convertJsonData,
@@ -51,10 +51,15 @@ export const build = ({
 
       const originalSheetInfoArray = convertWorkSheetToJsonData(worksheet); //convertir la hoja a un array con los elementos internos
 
-      const indexOriginSheetTitleStarts = findIndexOfArrayOfArrayByString(originalSheetInfoArray as unknown[][], `${excelFieldsTitles[0]}`);
+      const indexOriginSheetTitleStarts = findIndexOnMatrix(originalSheetInfoArray as unknown[][], EXCEL_EXPORTED_TITLES as string[]);
+      const titlesOriginalRow = originalSheetInfoArray[indexOriginSheetTitleStarts !== -1 ? indexOriginSheetTitleStarts : 6]; //Si no encuentra el titulo, asume que la fila 6 tiene los titulos
 
-      validateAllColumnsExists(originalSheetInfoArray as unknown[][], result, sheetName, indexOriginSheetTitleStarts);
-      const convertedData = processSheet(originalSheetInfoArray as unknown[][], indexOriginSheetTitleStarts);
+      validateAllColumnsExists(originalSheetInfoArray as unknown[][], result, sheetName, titlesOriginalRow as unknown[]);
+      const convertedData = processSheet(
+        originalSheetInfoArray as unknown[][],
+        indexOriginSheetTitleStarts,
+        titlesOriginalRow as unknown[]
+      );
 
       if (result.errors.length > 0) return;
 
@@ -79,13 +84,11 @@ export const build = ({
     originalSheetInfoArray: unknown[][],
     result: fileResponse,
     sheetName: string,
-    indexTitleStarts: number
+    titlesOriginalRow: unknown[]
   ) => {
     if (originalSheetInfoArray.length === 0) return; //Columnas vacias no se procesan
 
-    const valuesFields = originalSheetInfoArray[indexTitleStarts !== -1 ? indexTitleStarts : 6]; //Si no encuentra el titulo, asume que la fila 6 tiene los titulos
-
-    const missingColumns = excelFieldsTitles.filter((item: string | number) => !valuesFields.includes(item));
+    const missingColumns = REQUIRED_FIELDS.filter((item: unknown) => !titlesOriginalRow.includes(`${item}`));
     if (missingColumns.length > 0) {
       if (missingColumns.length < 10) {
         result.errors.push(`La hoja "${sheetName}" no tiene las columnas: (${missingColumns.join(', ')}) `);
@@ -98,16 +101,15 @@ export const build = ({
 
   const processSheet = (
     originalSheetInfoArray: unknown[][],
-    indexOriginalTitleStarts: number
+    indexOriginalTitleStarts: number,
+    titlesOriginalRow: unknown[]
   ): { noOfferByRow: number[]; newFile: unknown[][] } => {
     if (originalSheetInfoArray.length === 0) return { newFile: originalSheetInfoArray, noOfferByRow: [] }; //Columnas vacias no se procesan
 
     const newJsonDataToExport: unknown[][] = [];
     const noOfferByRow: number[] = [];
 
-    //Agregar nuevos titulos (solo los que necesitan)
-    const oldTitles = excelFieldsTitles;
-    const newTitles = excelExportedTitles;
+    const newTitles = EXCEL_EXPORTED_TITLES;
 
     newJsonDataToExport.push(newTitles as string[]);
 
@@ -116,7 +118,7 @@ export const build = ({
       originalSheetInfoArray,
       noOfferByRow,
       newJsonDataToExport,
-      oldTitles as (number | string)[],
+      titlesOriginalRow as (number | string)[],
       newTitles as string[]
     );
 
@@ -142,7 +144,7 @@ export const build = ({
       const newRow: unknown[] = [];
 
       newTitles.forEach((newTitle) => {
-        const indexOnOldTitles = oldTitles.indexOf(newTitle) + 1;
+        const indexOnOldTitles = oldTitles.indexOf(newTitle);
         const copyOfOriginalRowField = originalRow[indexOnOldTitles];
 
         if (newTitle === ROW_TITLE_FOR_COLORS) {
@@ -202,7 +204,7 @@ export const build = ({
               },
               border: borderStyles,
               fill: {
-                fgColor: { rgb: excelExportedTitlesColors[col] },
+                fgColor: { rgb: EXCEL_EXPORTED_TITLE_COLORS[col] },
                 patternType: 'solid'
               }
             };

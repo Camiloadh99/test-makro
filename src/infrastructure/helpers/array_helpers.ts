@@ -1,12 +1,12 @@
-import { colors } from '@domain/entities/excel_makro.entity';
+import { COLORS } from '@domain/entities/excel_makro.entity';
 
-export const findIndexOfArrayOfArrayByString = (arrayOfArrays: unknown[][], searchString: string): number => {
-  return arrayOfArrays.findIndex((innerArray) => {
-    return innerArray.some((item) => item === searchString);
+export const findIndexOnMatrix = (Matrix: unknown[][], arrayToFind: string[]): number => {
+  return Matrix.findIndex((innerArray) => {
+    return innerArray.some((item) => arrayToFind.includes(item as string));
   });
 };
 
 export const getColorForNumber = (num: number) => {
-  const index = (num - 1) % colors.length;
-  return colors[index] || 'FFFFFF'; // Blanco por defecto
+  const index = (num - 1) % COLORS.length;
+  return COLORS[index] || 'FFFFFF'; // Blanco por defecto
 };
