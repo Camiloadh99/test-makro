@@ -1,5 +1,5 @@
 import { EXCEL_EXPORTED_TITLES, EXCEL_EXPORTED_TITLE_COLORS, fileResponse, REQUIRED_FIELDS } from '@domain/entities/excel_makro.entity';
-import { findIndexOnMatrix, getColorForNumber } from '@fnd/helpers/array_helpers';
+import { convertRowDataToStringArray, findIndexOnMatrix, getColorForNumber } from '@fnd/helpers/array_helpers';
 import {
   arrayToSheetFile,
   convertJsonData,
@@ -8,7 +8,8 @@ import {
   writeXlsxFile,
   createWorkBookFile,
   decodeRange,
-  encodeCellFile
+  encodeCellFile,
+  RowData
 } from '@fnd/libs/process-xlsx';
 import { WorkSheet } from 'xlsx-js-style';
 
@@ -51,19 +52,16 @@ export const build = ({
 
       const originalSheetInfoArray = convertWorkSheetToJsonData(worksheet); //convertir la hoja a un array con los elementos internos
 
-      const indexOriginSheetTitleStarts = findIndexOnMatrix(originalSheetInfoArray as unknown[][], EXCEL_EXPORTED_TITLES as string[]);
+      const indexOriginSheetTitleStarts = findIndexOnMatrix(originalSheetInfoArray, [...EXCEL_EXPORTED_TITLES]);
       const titlesOriginalRow = originalSheetInfoArray[indexOriginSheetTitleStarts !== -1 ? indexOriginSheetTitleStarts : 6]; //Si no encuentra el titulo, asume que la fila 6 tiene los titulos
+      const titlesOriginalRowString = convertRowDataToStringArray(titlesOriginalRow);
 
-      validateAllColumnsExists(originalSheetInfoArray as unknown[][], result, sheetName, titlesOriginalRow as unknown[]);
-      const convertedData = processSheet(
-        originalSheetInfoArray as unknown[][],
-        indexOriginSheetTitleStarts,
-        titlesOriginalRow as unknown[]
-      );
+      validateAllColumnsExists(originalSheetInfoArray, result, sheetName, titlesOriginalRowString);
+      const convertedData = processSheet(originalSheetInfoArray, indexOriginSheetTitleStarts, titlesOriginalRowString);
 
       if (result.errors.length > 0) return;
 
-      const worksheetToExport = convertArrayToSheet(convertedData.newFile as unknown[][]);
+      const worksheetToExport = convertArrayToSheet(convertedData.newFile);
       applyStyles(worksheetToExport, convertedData.noOfferByRow);
 
       convertWorkSheetToWorkBook(workbookToExport, worksheetToExport, sheetName);
@@ -81,14 +79,14 @@ export const build = ({
   };
 
   const validateAllColumnsExists = (
-    originalSheetInfoArray: unknown[][],
+    originalSheetInfoArray: RowData[][],
     result: fileResponse,
     sheetName: string,
-    titlesOriginalRow: unknown[]
+    titlesOriginalRow: string[]
   ) => {
     if (originalSheetInfoArray.length === 0) return; //Columnas vacias no se procesan
 
-    const missingColumns = REQUIRED_FIELDS.filter((item: unknown) => !titlesOriginalRow.includes(`${item}`));
+    const missingColumns = REQUIRED_FIELDS.filter((item) => !titlesOriginalRow.includes(`${item}`));
     if (missingColumns.length > 0) {
       if (missingColumns.length < 10) {
         result.errors.push(`La hoja "${sheetName}" no tiene las columnas: (${missingColumns.join(', ')}) `);
@@ -100,26 +98,26 @@ export const build = ({
   };
 
   const processSheet = (
-    originalSheetInfoArray: unknown[][],
+    originalSheetInfoArray: RowData[][],
     indexOriginalTitleStarts: number,
-    titlesOriginalRow: unknown[]
-  ): { noOfferByRow: number[]; newFile: unknown[][] } => {
+    titlesOriginalRow: string[]
+  ): { noOfferByRow: number[]; newFile: RowData[][] } => {
     if (originalSheetInfoArray.length === 0) return { newFile: originalSheetInfoArray, noOfferByRow: [] }; //Columnas vacias no se procesan
 
-    const newJsonDataToExport: unknown[][] = [];
+    const newJsonDataToExport: RowData[][] = [];
     const noOfferByRow: number[] = [];
 
-    const newTitles = EXCEL_EXPORTED_TITLES;
+    const newTitles = [...EXCEL_EXPORTED_TITLES];
 
-    newJsonDataToExport.push(newTitles as string[]);
+    newJsonDataToExport.push(newTitles);
 
     processRow(
       indexOriginalTitleStarts,
       originalSheetInfoArray,
       noOfferByRow,
       newJsonDataToExport,
-      titlesOriginalRow as (number | string)[],
-      newTitles as string[]
+      titlesOriginalRow,
+      convertRowDataToStringArray(newTitles)
     );
 
     return { newFile: newJsonDataToExport, noOfferByRow: noOfferByRow };
@@ -127,9 +125,9 @@ export const build = ({
 
   const processRow = (
     indexOriginalTitleStarts: number,
-    originalSheetInfoArray: unknown[][],
+    originalSheetInfoArray: RowData[][],
     noOfferByRow: number[],
-    newJsonDataToExport: unknown[][],
+    newJsonDataToExport: RowData[][],
     oldTitles: (string | number)[],
     newTitles: string[]
   ) => {
@@ -141,18 +139,18 @@ export const build = ({
       const isEmptyRow = originalRow.every((cell) => cell === null || cell === undefined || cell === '');
       if (isEmptyRow) continue;
 
-      const newRow: unknown[] = [];
+      const newRow: RowData[] = [];
 
       newTitles.forEach((newTitle) => {
         const indexOnOldTitles = oldTitles.indexOf(newTitle);
-        const copyOfOriginalRowField = originalRow[indexOnOldTitles];
+        const copyOfOriginalRowField = originalRow[indexOnOldTitles + 1];
 
         if (newTitle === ROW_TITLE_FOR_COLORS) {
-          noOfferByRow.push(copyOfOriginalRowField as number);
+          noOfferByRow.push(Number(copyOfOriginalRowField));
         }
 
         if (newTitle.includes(ROW_TITLE_PERCENTAGE)) {
-          const discount = copyOfOriginalRowField as string;
+          const discount = copyOfOriginalRowField;
           newRow.push(discount ? `${+discount * 100}%` : copyOfOriginalRowField || '');
         } else if (typeof copyOfOriginalRowField === 'number') {
           newRow.push(`${parseFloat(copyOfOriginalRowField?.toFixed())}`);
