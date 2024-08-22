@@ -31,6 +31,7 @@ window.Dropzone.prototype.uploadFiles = function (files) {
   xlsxFile = file;
   document.getElementById('sendFileButton').disabled = false;
   document.querySelector('.button-container').classList.add('show');
+  hideErrorAlert();
   self.emit('success', file, 'success', null);
 
   self.emit('complete', file);
@@ -58,21 +59,36 @@ const handleSendFile = async () => {
       body: formDataBody
     });
 
-    const blob = await response.blob();
-    const urlBlob = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = urlBlob;
-    a.download = 'response.xlsx';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(urlBlob);
+    if (response.status === 200) {
+      const blob = await response.blob();
+      const urlBlob = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlBlob;
+      a.download = 'response.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(urlBlob);
 
+      showSections({
+        sectionShow: '.success-section',
+        sectionHidde: '.upload-section'
+      });
+    } else {
+      const data = await response.json();
+      dropzone.removeAllFiles(true);
+      xlsxFile = null;
+      document.getElementById('sendFileButton').disabled = true;
+      document.querySelector('.button-container').classList.remove('show');
+
+      if (data?.metadata?.errors) {
+        const errorMessages = data.metadata.errors.join('. ');
+        showErrorAlert(`${data.message}: ${errorMessages}`);
+      } else {
+        showErrorAlert(`${data.message}`);
+      }
+    }
     document.querySelector('.loader-container').style.display = 'none';
-    showSections({
-      sectionShow: '.success-section',
-      sectionHidde: '.upload-section'
-    });
   } catch (error) {
     console.log(error);
   }
@@ -105,7 +121,13 @@ document.getElementById('uploadNewFileButton').addEventListener('click', () => {
   });
 });
 
-//dowload new file button
-document.getElementById('downloadFileButton').addEventListener('click', () => {
-  console.log('download');
-});
+//**Alert */
+function showErrorAlert(message) {
+  const errorAlert = document.getElementById('error-alert');
+  errorAlert.textContent = message;
+  errorAlert.style.display = 'block';
+}
+
+function hideErrorAlert() {
+  document.getElementById('error-alert').style.display = 'none';
+}
