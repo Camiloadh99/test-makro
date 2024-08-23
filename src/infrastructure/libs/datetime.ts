@@ -1,4 +1,4 @@
-import { ErrorBadRequest } from '@domain/errors/bad-request';
+import { ErrorBadRequest } from '@domain/errors/bad_request';
 import { DateTime } from 'luxon';
 
 export type getCurrentDateFn = () => Date;
