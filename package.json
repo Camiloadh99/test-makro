@@ -7,8 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "NODE_ENV=development nodemon -r dotenv/config",
     "debug": "NODE_ENV=development nodemon --config nodemon.debug.json | pino-pretty",
-    "compile": "tsc --outDir ./build/dist  && cp -r src/frontend build/dist/src",
-    "start": "npm run compile && node -r tsconfig-paths/register ./build/dist/src/index.js --project ./build/dist/tsconfig.json"
+    "compile": "tsc --outDir ./build  && cp -r src/frontend build/src",
+    "start": "npm run compile && node -r tsconfig-paths/register ./build/src/index.js --project ./build/tsconfig.json"
   },
   "keywords": [],
   "author": "",
