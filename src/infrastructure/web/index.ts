@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import appRouter from './routes';
 import path from 'path';
-import { env } from '@fnd/libs/env/env';
 import { buildOpenApiMiddelware } from '@fnd/libs/open-api';
 import { swaggerDocument, swaggerUi } from '@fnd/libs/swagger-ui';
 
@@ -21,8 +20,9 @@ const createServer = () => {
 
   app.use('/api', appRouter);
 
-  app.listen(env.PORT, () => {
-    console.log(`Server is running on port ${env.PORT}`);
+  const PORT = 3000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
   });
 };
 

@@ -1,9 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import * as info from '../../../package.json';
-import { env } from '@fnd/libs/env';
 
-const svc = env.APP_ID || 'Service';
-const environment = env.NODE_ENV || 'development';
+const svc = 'Service';
+const environment = 'development';
 
 export type Healthy = {
   message: string;

@@ -1,12 +1,11 @@
 import pino, { Logger } from 'pino';
 import path from 'path';
-import { env } from './env';
 
-const environment = env.NODE_ENV || 'development';
+const environment = 'development';
 
 const LOG_LEVEL = environment === 'development' ? 'debug' : 'warn';
 
-const NAMESPACE_ROOT = env.NAMESPACE_ROOT !== undefined ? env.NAMESPACE_ROOT.replace(':*', '') : 'src:*'.replace(':*', '');
+const NAMESPACE_ROOT = 'src:*'.replace(':*', '');
 
 export type LoggerFn = (absoluteFilePath?: string) => Logger;
 

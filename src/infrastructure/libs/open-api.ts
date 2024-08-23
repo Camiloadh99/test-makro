@@ -1,11 +1,10 @@
 import { middleware } from 'express-openapi-validator';
-import { env } from './env/env';
 
 const buildOpenApiMiddelware = () => {
-  const apiSpec = env.OPENAPI_FILE_PATH || '/spec';
-  const validateResponses = env.OPENAPI_ENABLE_RESPONSE_VALIDATION;
+  const apiSpec = './oas3.yaml';
+  const validateResponses = true;
 
-  const validateRequests = env.OPENAPI_ENABLE_REQUEST_VALIDATION;
+  const validateRequests = true;
 
   const validator = middleware({
     apiSpec,
