@@ -3,3 +3,4 @@ dist/
 output.txt
 .esbuild/
 .env
+.vercel
