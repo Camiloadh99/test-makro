@@ -1,5 +1,11 @@
 import { EXCEL_EXPORTED_TITLES, EXCEL_EXPORTED_TITLE_COLORS, fileResponse, REQUIRED_FIELDS } from '@domain/entities/excel_makro.entity';
-import { convertRowDataToStringArray, findIndexOnMatrix, getColorForNumber } from '@fnd/helpers/array_helpers';
+import {
+  convertRowDataToStringArray,
+  deleteLineBreakString,
+  findIndexOnMatrix,
+  getColorForNumber,
+  uppercaseFirstLetters
+} from '@fnd/helpers/array_helpers';
 import {
   arrayToSheetFile,
   convertJsonData,
@@ -26,6 +32,9 @@ type Dependencies = {
 
 const ROW_TITLE_FOR_COLORS = 'No Oferta';
 const ROW_TITLE_PERCENTAGE = 'Porcentaje';
+const ROW_TITLE_CODE = 'Código';
+const ROW_TITLE_DESCRIPTION = 'Descripcion';
+const ROW_TITLE_UNITS = 'Unidades Disponibles';
 
 export const build = ({
   readXlsxFile,
@@ -86,7 +95,9 @@ export const build = ({
   ) => {
     if (originalSheetInfoArray.length === 0) return; //Columnas vacias no se procesan
 
-    const missingColumns = REQUIRED_FIELDS.filter((item) => !titlesOriginalRow.includes(`${item}`));
+    //Algunos titulos tienen el salto de linea \n, por lo que se eliminan para comparar
+    const reqTitlesWithoutBreakLine = REQUIRED_FIELDS.map((item) => deleteLineBreakString(item));
+    const missingColumns = reqTitlesWithoutBreakLine.filter((item) => !titlesOriginalRow.includes(`${item}`));
     if (missingColumns.length > 0) {
       if (missingColumns.length < 10) {
         result.errors.push(`La hoja "${sheetName}" no tiene las columnas: (${missingColumns.join(', ')}) `);
@@ -102,14 +113,14 @@ export const build = ({
     indexOriginalTitleStarts: number,
     titlesOriginalRow: string[]
   ): { noOfferByRow: number[]; newFile: RowData[][] } => {
-    if (originalSheetInfoArray.length === 0) return { newFile: originalSheetInfoArray, noOfferByRow: [] }; //Columnas vacias no se procesan
+    if (originalSheetInfoArray.length === 0 || titlesOriginalRow.length === 0) return { newFile: originalSheetInfoArray, noOfferByRow: [] }; //Columnas vacias no se procesan
 
     const newJsonDataToExport: RowData[][] = [];
     const noOfferByRow: number[] = [];
 
     const newTitles = [...EXCEL_EXPORTED_TITLES];
 
-    newJsonDataToExport.push(newTitles);
+    newJsonDataToExport.push(newTitles.map((item: string) => deleteLineBreakString(item)) as string[]);
 
     processRow(
       indexOriginalTitleStarts,
@@ -136,7 +147,7 @@ export const build = ({
       const originalRow = originalSheetInfoArray[i];
 
       // Si una fila esta completamente vacía no se agrega
-      const isEmptyRow = originalRow.every((cell) => cell === null || cell === undefined || cell === '');
+      const isEmptyRow = originalRow.every((cell) => cell === null || cell === undefined || cell === '' || cell === 0);
       if (isEmptyRow) continue;
 
       const newRow: RowData[] = [];
@@ -152,14 +163,62 @@ export const build = ({
         if (newTitle.includes(ROW_TITLE_PERCENTAGE)) {
           const discount = copyOfOriginalRowField;
           newRow.push(discount ? `${+discount * 100}%` : copyOfOriginalRowField || '');
+        } else if (newTitle === ROW_TITLE_DESCRIPTION) {
+          const description =
+            typeof copyOfOriginalRowField === 'string' ? uppercaseFirstLetters(deleteLineBreakString(copyOfOriginalRowField)) : '';
+          newRow.push(description || '');
         } else if (typeof copyOfOriginalRowField === 'number') {
           newRow.push(`${parseFloat(copyOfOriginalRowField?.toFixed())}`);
         } else {
-          newRow.push(copyOfOriginalRowField || '');
+          newRow.push(
+            typeof copyOfOriginalRowField === 'string' ? deleteLineBreakString(copyOfOriginalRowField) : copyOfOriginalRowField || ''
+          );
         }
       });
 
       newJsonDataToExport.push(newRow);
+    }
+    mergeCodesAndUnits(newJsonDataToExport);
+  };
+
+  const mergeCodesAndUnits = (newJsonDataToExport: RowData[][]) => {
+    const titlesNewSheet = newJsonDataToExport[0];
+
+    const indexOfNoOffer = titlesNewSheet.findIndex((item) => item === ROW_TITLE_FOR_COLORS);
+    const indexOfProductCode = titlesNewSheet.findIndex((item) => item === ROW_TITLE_CODE);
+    const indexOfUnits = titlesNewSheet.findIndex((item) => item === ROW_TITLE_UNITS);
+
+    let currentOffer: string | null = null;
+    let currentProductCodes: string[] = [];
+    let currentUnitsAvailable: number[] = [];
+    let currentRow: RowData[] | null = null;
+
+    for (let rowIndex = 1; rowIndex < newJsonDataToExport.length; rowIndex++) {
+      const row = newJsonDataToExport[rowIndex];
+      const offer = `${row[indexOfNoOffer]}`;
+      const unitsAvailable = `${row[indexOfUnits]}`;
+      const productCode = row[indexOfProductCode];
+
+      if (offer === currentOffer) {
+        currentProductCodes.push(productCode as string);
+        currentUnitsAvailable.push(Number(unitsAvailable));
+      } else {
+        if (currentRow) {
+          //merge product codes
+          currentRow[indexOfProductCode] = currentProductCodes.join('-');
+
+          //merge units available
+          const unitsAvailableTotal = currentUnitsAvailable.reduce((acc, curr) => Math.abs(acc) + Math.abs(curr), 0);
+          currentRow[indexOfUnits] = unitsAvailableTotal && unitsAvailableTotal > 0 ? unitsAvailableTotal : 150;
+        }
+        currentOffer = `${offer}`;
+        currentProductCodes = [`${productCode}`];
+        currentUnitsAvailable = [Number(unitsAvailable)];
+        currentRow = row;
+      }
+    }
+    if (currentRow) {
+      currentRow[indexOfProductCode] = currentProductCodes.join('-');
     }
   };
 
@@ -169,7 +228,7 @@ export const build = ({
     const columnCount = range.e.c;
 
     const columnWidths = Array.from({ length: columnCount + 1 }, () => ({ wpx: 150 }));
-    const dataRowHeight = Array.from({ length: rowCount }, () => ({ hpt: 30 }));
+    const dataRowHeight = Array.from({ length: rowCount }, () => ({ hpt: 45 }));
     worksheet['!cols'] = columnWidths;
     worksheet['!rows'] = dataRowHeight;
 
