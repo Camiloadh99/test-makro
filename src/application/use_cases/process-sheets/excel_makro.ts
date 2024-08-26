@@ -177,8 +177,10 @@ export const build = ({
       const newRow: RowData[] = [];
 
       newTitles.forEach((newTitle) => {
-        const indexOnOldTitles = oldTitles.indexOf(newTitle);
-        const copyOfOriginalRowField = originalRow[indexOnOldTitles + 1];
+        const indexOnOldTitles = oldTitles.findIndex((item) => item === newTitle);
+        const isCell0Undefined = originalRow[0] === undefined;
+        const searchIndex = isCell0Undefined ? 1 : 0; // algunas veces no viene el emento 0
+        const copyOfOriginalRowField = originalRow[indexOnOldTitles + searchIndex];
 
         if (newTitle === ROW_TITLE_FOR_COLORS) {
           noOfferByRow.push(Number(copyOfOriginalRowField));
