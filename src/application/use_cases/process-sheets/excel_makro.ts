@@ -17,11 +17,11 @@ import {
   encodeCellFile,
   RowData
 } from '@fnd/libs/process-xlsx';
-import { utils, WorkSheet } from 'xlsx-js-style';
+import { ColInfo, utils, WorkSheet } from 'xlsx-js-style';
 
 import path from 'path';
 import { readFileSync } from 'fs';
-import { DEFAULT_STYLES_PAGE1, IDefaultSheet } from '@domain/entities/default_sheets.entity';
+import { customWidths, DEFAULT_STYLES_PAGE1, DEFAULT_STYLES_PAGE2, IDefaultSheet } from '@domain/entities/default_sheets.entity';
 
 type Dependencies = {
   readXlsxFile: readXlsxFile;
@@ -40,7 +40,7 @@ const ROW_TITLE_CODE = 'Código';
 const ROW_TITLE_DESCRIPTION = 'Descripcion';
 const ROW_TITLE_UNITS = 'Unidades Disponibles';
 
-const TITLE_DEFAULT_SHEET_1 = 'Vigencia';
+const TITLE_DEFAULT_SHEET_1 = 'Vigencia ';
 const TITLE_DEFAULT_SHEET_2 = 'Respuesta Comercial';
 
 export const build = ({
@@ -66,14 +66,14 @@ export const build = ({
     const defaultSheetPath = path.resolve(__dirname, '../../../domain/entities/sheets/brief_semanal.xlsx');
     const defaultSheetBuffer = readFileSync(defaultSheetPath);
 
-    const defaultWorkBook: any = await readXlsxFile(defaultSheetBuffer);
+    const defaultWorkBook = await readXlsxFile(defaultSheetBuffer);
 
-    const defaultSheetPage1 = defaultWorkBook.Sheets[TITLE_DEFAULT_SHEET_1]; //Hoja de Vigencia
+    const defaultSheetPage1 = defaultWorkBook.Sheets[TITLE_DEFAULT_SHEET_1 || defaultWorkBook.SheetNames[0]]; //Hoja de Vigencia
     const defaultSheetPage2 = defaultWorkBook.Sheets[TITLE_DEFAULT_SHEET_2]; //Hoja de Vigencia
 
     //** Agregando primer pagina por defecto */
     const stylesDefaultSheet1 = copySheetWithStyles(defaultSheetPage1, DEFAULT_STYLES_PAGE1);
-    const stylesDefaultSheet2 = copySheetWithStyles(defaultSheetPage2, DEFAULT_STYLES_PAGE1);
+    const stylesDefaultSheet2 = copySheetWithStyles(defaultSheetPage2, DEFAULT_STYLES_PAGE2, customWidths);
     convertWorkSheetToWorkBook(workbookToExport, stylesDefaultSheet1, TITLE_DEFAULT_SHEET_1);
 
     //** Proccess */
@@ -97,6 +97,9 @@ export const build = ({
       convertWorkSheetToWorkBook(workbookToExport, worksheetToExport, sheetName);
     });
 
+    //**Ultimas paginas  */
+    convertWorkSheetToWorkBook(workbookToExport, stylesDefaultSheet2, TITLE_DEFAULT_SHEET_2);
+
     //** Return File */
     if (result.errors.length > 0) return { file: null, errors: result.errors };
 
@@ -106,24 +109,6 @@ export const build = ({
       file: stream,
       errors: result.errors
     };
-  };
-
-  const copySheetWithStyles = (sourceSheet: WorkSheet, sheetStyle: IDefaultSheet[]) => {
-    const range = decodeSheetRange(sourceSheet);
-    const columnCount = range.e.c;
-
-    const columnWidths = Array.from({ length: columnCount + 1 }, () => ({ wpx: 150 }));
-    sourceSheet['!cols'] = columnWidths;
-
-    sheetStyle.forEach((style) => {
-      const cellRef = style.ref;
-      if (sourceSheet[cellRef]) {
-        sourceSheet[cellRef].s = style.style;
-      } else {
-        sourceSheet[cellRef] = { v: '', s: style.style };
-      }
-    });
-    return sourceSheet;
   };
 
   const validateAllColumnsExists = (
@@ -326,6 +311,24 @@ export const build = ({
       }
     }
     return worksheet;
+  };
+
+  const copySheetWithStyles = (sourceSheet: WorkSheet, sheetStyle: IDefaultSheet[], customWidths?: ColInfo[]) => {
+    const range = decodeSheetRange(sourceSheet);
+    const columnCount = range.e.c;
+
+    const columnWidths = Array.from({ length: columnCount + 1 }, () => ({ wpx: 150 }));
+    sourceSheet['!cols'] = customWidths ?? columnWidths;
+
+    sheetStyle.forEach((style) => {
+      const cellRef = style.ref;
+      if (sourceSheet[cellRef]) {
+        sourceSheet[cellRef].s = style.style;
+      } else {
+        sourceSheet[cellRef] = { v: '', s: style.style };
+      }
+    });
+    return sourceSheet;
   };
 
   return execute;
