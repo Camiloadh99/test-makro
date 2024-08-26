@@ -2,20 +2,30 @@
 
 let xlsxFile = null;
 
+const $ = (el) => document.querySelector(el);
+
+const $loader = $('.loader-container');
+const $errorAlert = $('#error-alert');
+const $buttonContainer = $('.button-container');
+//buttons
+const $uploadNewFileButton = $('#uploadNewFileButton');
+const $sendFileButton = $('#sendFileButton');
+const $clearFilesButton = $('#clearFilesButton');
+
 window.Dropzone.options.dropzoneBasic = {
   acceptedFiles: '.xlsx',
   maxFiles: 1,
   init: function () {
-    this.on('addedfile', function (file) {
+    this.on('addedfile', function () {
       if (this.files.length > 1) {
         this.removeFile(this.files[0]);
       }
     });
-    this.on('uploadprogress', function (file, progress) {
-      document.querySelector('.loader-container').style.display = 'flex';
+    this.on('uploadprogress', function () {
+      $loader.style.display = 'flex';
     });
-    this.on('complete', function (file) {
-      document.querySelector('.loader-container').style.display = 'none';
+    this.on('complete', function () {
+      $loader.style.display = 'none';
     });
   }
 };
@@ -25,15 +35,15 @@ window.Dropzone.prototype.uploadFiles = function (files) {
   const self = this;
 
   const file = files[0];
-
   file.status = Dropzone.SUCCESS;
   //Save the file and enable the button
   xlsxFile = file;
-  document.getElementById('sendFileButton').disabled = false;
-  document.querySelector('.button-container').classList.add('show');
-  hideErrorAlert();
-  self.emit('success', file, 'success', null);
 
+  $sendFileButton.disabled = false;
+  $buttonContainer.classList.add('show');
+  hideErrorAlert();
+
+  self.emit('success', file, 'success', null);
   self.emit('complete', file);
   self.processQueue();
 };
@@ -47,7 +57,8 @@ const showSections = ({ sectionShow, sectionHidde }) => {
 
 const handleSendFile = async () => {
   try {
-    document.querySelector('.loader-container').style.display = 'flex';
+    $loader.style.display = 'flex';
+
     const host = window.location.origin;
     const url = `${host}/api/v1/file-sheets/process`;
 
@@ -78,8 +89,9 @@ const handleSendFile = async () => {
       const data = await response.json();
       dropzone.removeAllFiles(true);
       xlsxFile = null;
-      document.getElementById('sendFileButton').disabled = true;
-      document.querySelector('.button-container').classList.remove('show');
+
+      $sendFileButton.disabled = true;
+      $buttonContainer.classList.remove('show');
 
       if (data?.metadata?.errors) {
         const errorMessages = data.metadata.errors.join('. ');
@@ -88,31 +100,19 @@ const handleSendFile = async () => {
         showErrorAlert(`${data.message}`);
       }
     }
-    document.querySelector('.loader-container').style.display = 'none';
+    $loader.style.display = 'none';
   } catch (error) {
     console.log(error);
   }
 };
 
 //**Buttons */
-
-//Send file button
-document.getElementById('sendFileButton').addEventListener('click', handleSendFile);
-
-//Clear files button
-document.getElementById('clearFilesButton').addEventListener('click', () => {
+$uploadNewFileButton.addEventListener('click', () => {
   dropzone.removeAllFiles(true);
   xlsxFile = null;
-  document.getElementById('sendFileButton').disabled = true;
-  document.querySelector('.button-container').classList.remove('show');
-});
 
-//Upload new file button
-document.getElementById('uploadNewFileButton').addEventListener('click', () => {
-  dropzone.removeAllFiles(true);
-  xlsxFile = null;
-  document.getElementById('sendFileButton').disabled = true;
-  document.querySelector('.button-container').classList.remove('show');
+  $sendFileButton.disabled = true;
+  $buttonContainer.classList.remove('show');
 
   //Change section
   showSections({
@@ -121,13 +121,21 @@ document.getElementById('uploadNewFileButton').addEventListener('click', () => {
   });
 });
 
+$sendFileButton.addEventListener('click', handleSendFile);
+
+$clearFilesButton.addEventListener('click', () => {
+  dropzone.removeAllFiles(true);
+  xlsxFile = null;
+  document.getElementById('sendFileButton').disabled = true;
+  document.querySelector('.button-container').classList.remove('show');
+});
+
 //**Alert */
 function showErrorAlert(message) {
-  const errorAlert = document.getElementById('error-alert');
-  errorAlert.textContent = message;
-  errorAlert.style.display = 'block';
+  $errorAlert.textContent = message;
+  $errorAlert.style.display = 'block';
 }
 
 function hideErrorAlert() {
-  document.getElementById('error-alert').style.display = 'none';
+  $errorAlert.style.display = 'none';
 }
