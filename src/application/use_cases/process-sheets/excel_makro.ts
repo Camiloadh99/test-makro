@@ -17,7 +17,11 @@ import {
   encodeCellFile,
   RowData
 } from '@fnd/libs/process-xlsx';
-import { WorkSheet } from 'xlsx-js-style';
+import { utils, WorkSheet } from 'xlsx-js-style';
+
+import path from 'path';
+import { readFileSync } from 'fs';
+import { DEFAULT_STYLES_PAGE1, IDefaultSheet } from '@domain/entities/default_sheets.entity';
 
 type Dependencies = {
   readXlsxFile: readXlsxFile;
@@ -35,6 +39,9 @@ const ROW_TITLE_PERCENTAGE = 'Porcentaje';
 const ROW_TITLE_CODE = 'Código';
 const ROW_TITLE_DESCRIPTION = 'Descripcion';
 const ROW_TITLE_UNITS = 'Unidades Disponibles';
+
+const TITLE_DEFAULT_SHEET_1 = 'Vigencia';
+const TITLE_DEFAULT_SHEET_2 = 'Respuesta Comercial';
 
 export const build = ({
   readXlsxFile,
@@ -54,6 +61,20 @@ export const build = ({
     //** Read File */
     const workbook = await readXlsxFile(xlsxFile);
     const workbookToExport = createWorkBook();
+
+    //**Add deafult pages */
+    const defaultSheetPath = path.resolve(__dirname, '../../../domain/entities/sheets/brief_semanal.xlsx');
+    const defaultSheetBuffer = readFileSync(defaultSheetPath);
+
+    const defaultWorkBook: any = await readXlsxFile(defaultSheetBuffer);
+
+    const defaultSheetPage1 = defaultWorkBook.Sheets[TITLE_DEFAULT_SHEET_1]; //Hoja de Vigencia
+    const defaultSheetPage2 = defaultWorkBook.Sheets[TITLE_DEFAULT_SHEET_2]; //Hoja de Vigencia
+
+    //** Agregando primer pagina por defecto */
+    const stylesDefaultSheet1 = copySheetWithStyles(defaultSheetPage1, DEFAULT_STYLES_PAGE1);
+    const stylesDefaultSheet2 = copySheetWithStyles(defaultSheetPage2, DEFAULT_STYLES_PAGE1);
+    convertWorkSheetToWorkBook(workbookToExport, stylesDefaultSheet1, TITLE_DEFAULT_SHEET_1);
 
     //** Proccess */
     workbook.SheetNames.forEach((sheetName) => {
@@ -85,6 +106,24 @@ export const build = ({
       file: stream,
       errors: result.errors
     };
+  };
+
+  const copySheetWithStyles = (sourceSheet: WorkSheet, sheetStyle: IDefaultSheet[]) => {
+    const range = decodeSheetRange(sourceSheet);
+    const columnCount = range.e.c;
+
+    const columnWidths = Array.from({ length: columnCount + 1 }, () => ({ wpx: 150 }));
+    sourceSheet['!cols'] = columnWidths;
+
+    sheetStyle.forEach((style) => {
+      const cellRef = style.ref;
+      if (sourceSheet[cellRef]) {
+        sourceSheet[cellRef].s = style.style;
+      } else {
+        sourceSheet[cellRef] = { v: '', s: style.style };
+      }
+    });
+    return sourceSheet;
   };
 
   const validateAllColumnsExists = (
