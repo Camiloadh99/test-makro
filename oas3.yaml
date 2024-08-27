@@ -16,6 +16,14 @@ paths:
       tags:
         - file-sheets
       summary: Process xlsx file
+      parameters:
+        - in: query
+          name: is_special_brief
+          schema:
+            type: boolean
+            example: true
+          required: false
+          description: is special brief
       requestBody:
         content:
           multipart/form-data:
