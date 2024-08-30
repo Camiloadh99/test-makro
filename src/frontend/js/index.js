@@ -68,7 +68,7 @@ const handleSendFile = async (type) => {
     $sendFileButton.disabled = true;
     $sendSpecialButton.disabled = true;
 
-    let isSpecialBrief = 'specia_brief';
+    let isSpecialBrief = 'special_brief';
     if (type === WEEKELY_BRIEF) {
       isSpecialBrief = 'weekly_brief';
     }

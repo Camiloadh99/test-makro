@@ -50,7 +50,7 @@ const ROW_TITLE_UNITS = 'Unidades Disponibles';
 const TITLE_DEFAULT_SHEET_1 = 'Vigencia ';
 const TITLE_DEFAULT_SHEET_2 = 'Respuesta Comercial';
 
-type IDocType = 'specia_brief' | 'weekly_brief';
+type IDocType = 'special_brief' | 'weekly_brief';
 
 export const build = ({
   readXlsxFile,
@@ -85,7 +85,7 @@ export const build = ({
     const stylesDefaultSheet2 = copySheetWithStyles(defaultSheetPage2, DEFAULT_STYLES_PAGE2, customWidths);
     convertWorkSheetToWorkBook(workbookToExport, stylesDefaultSheet1, TITLE_DEFAULT_SHEET_1);
 
-    const titlesToProcess = docType == 'specia_brief' ? EXCEL_EXPORTED_TITLES_SPECIAL : EXCEL_EXPORTED_TITLES;
+    const titlesToProcess = docType == 'special_brief' ? EXCEL_EXPORTED_TITLES_SPECIAL : EXCEL_EXPORTED_TITLES;
     //** Proccess */
     workbook.SheetNames.forEach((sheetName) => {
       const worksheet = workbook.Sheets[sheetName];
@@ -135,7 +135,7 @@ export const build = ({
     if (allClear) return;
 
     //Algunos titulos tienen el salto de linea \n, por lo que se eliminan para comparar
-    const fieldsToProcess = docType === 'specia_brief' ? REQUIRED_FIELDS_SPECIAL : REQUIRED_FIELDS;
+    const fieldsToProcess = docType === 'special_brief' ? REQUIRED_FIELDS_SPECIAL : REQUIRED_FIELDS;
     const reqTitlesWithoutBreakLine = fieldsToProcess.map((item) => deleteLineBreakString(item));
     const missingColumns = reqTitlesWithoutBreakLine.filter((item) => !titlesOriginalRow.includes(`${item}`));
     if (missingColumns.length > 0) {
@@ -205,7 +205,7 @@ export const build = ({
 
         if (newTitle.includes(ROW_TITLE_PERCENTAGE)) {
           const discount = copyOfOriginalRowField;
-          newRow.push(discount ? `${+discount * 100}%` : copyOfOriginalRowField || '');
+          newRow.push(typeof discount === 'number' ? `${(+discount * 100).toFixed(0)}%` : copyOfOriginalRowField || '');
         } else if (newTitle === ROW_TITLE_DESCRIPTION) {
           const description =
             typeof copyOfOriginalRowField === 'string' ? uppercaseFirstLetters(deleteLineBreakString(copyOfOriginalRowField)) : '';

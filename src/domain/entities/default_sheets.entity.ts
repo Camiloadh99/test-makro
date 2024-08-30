@@ -52,8 +52,7 @@ const fillStyle = (rgb: string) => ({
 
 const redBoxStyle = {
   alignment: {
-    ...centerAlignment,
-    textRotation: 90
+    ...centerAlignment
   },
   font: {
     ...fontStyles,
