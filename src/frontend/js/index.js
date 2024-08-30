@@ -73,7 +73,7 @@ const handleSendFile = async (type) => {
       isSpecialBrief = 'weekly_brief';
     }
 
-    const host = window.location.origin;
+    const host = 'https://test-makro-1.onrender.com';
     const url = `${host}/api/v1/file-sheets/process?doc_type=${isSpecialBrief}`;
 
     const formDataBody = new FormData();

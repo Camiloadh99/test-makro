@@ -10,7 +10,7 @@ WORKDIR /build
 COPY ["package.json", "tsconfig.json","package-lock.json", "./"]
 COPY ["./src", "./src"]
 RUN npm ci
-COPY [".eslintignore", ".eslintrc",".prettierrc",".prettierignore", "./"]
+COPY [".eslintignore", ".eslintrc.js",".prettierrc",".prettierignore", "./"]
 RUN npm run style
 RUN npm run lint
 RUN npm run compile
@@ -20,5 +20,5 @@ WORKDIR /usr/app
 COPY ./oas3.yaml .
 COPY --from=dependencies /dependencies .
 COPY --from=builder /build/dist .
-COPY ./src/frontend ./frontend
+
 CMD [ "npm","run","start" ]
