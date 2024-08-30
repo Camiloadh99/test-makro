@@ -8,9 +8,9 @@ export class FileSheetController {
   async processFile(req: any, res: Response) {
     try {
       const fileBuffer = req.files[0].buffer;
-      const { is_special_brief } = req.query;
+      const { doc_type } = req.query;
 
-      const result: fileResponse = await processExcelMakro(fileBuffer, is_special_brief);
+      const result: fileResponse = await processExcelMakro(fileBuffer, doc_type);
 
       if (result.errors.length > 0) {
         // res.json({ message: result.errors, code: 400 }).status(400);

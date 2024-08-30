@@ -18,10 +18,10 @@ paths:
       summary: Process xlsx file
       parameters:
         - in: query
-          name: is_special_brief
+          name: doc_type
           schema:
-            type: boolean
-            example: true
+            type: string
+            enum: [specia_brief, weekly_brief]
           required: false
           description: is special brief
       requestBody:

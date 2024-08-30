@@ -41,7 +41,7 @@ export const REQUIRED_FIELDS_SPECIAL = Object.freeze([
 ]);
 
 export const EXCEL_EXPORTED_TITLES = Object.freeze(['Check Revision', 'CÓD. Código / Unidades Disponibles UND*', ...REQUIRED_FIELDS]);
-export const EXCEL_EXPORTED_TITLES_SEPCIAL = Object.freeze([
+export const EXCEL_EXPORTED_TITLES_SPECIAL = Object.freeze([
   'Check Revision',
   'CÓD. Código / Unidades Disponibles UND*',
   ...REQUIRED_FIELDS_SPECIAL

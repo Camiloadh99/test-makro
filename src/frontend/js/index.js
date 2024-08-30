@@ -68,15 +68,13 @@ const handleSendFile = async (type) => {
     $sendFileButton.disabled = true;
     $sendSpecialButton.disabled = true;
 
-    let isSpecialBrief = true;
-    if (type === SPECIAL_BRIEF) {
-      isSpecialBrief = true;
-    } else if (type === WEEKELY_BRIEF) {
-      isSpecialBrief = false;
+    let isSpecialBrief = 'specia_brief';
+    if (type === WEEKELY_BRIEF) {
+      isSpecialBrief = 'weekly_brief';
     }
 
     const host = window.location.origin;
-    const url = `${host}/api/v1/file-sheets/process?is_special_brief=${isSpecialBrief}`;
+    const url = `${host}/api/v1/file-sheets/process?doc_type=${isSpecialBrief}`;
 
     const formDataBody = new FormData();
     formDataBody.append('file', xlsxFile);

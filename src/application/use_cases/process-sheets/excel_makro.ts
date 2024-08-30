@@ -4,7 +4,7 @@ import {
   fileResponse,
   REQUIRED_FIELDS,
   REQUIRED_FIELDS_SPECIAL,
-  EXCEL_EXPORTED_TITLES_SEPCIAL
+  EXCEL_EXPORTED_TITLES_SPECIAL
 } from '@domain/entities/excel_makro.entity';
 import {
   convertRowDataToStringArray,
@@ -50,6 +50,8 @@ const ROW_TITLE_UNITS = 'Unidades Disponibles';
 const TITLE_DEFAULT_SHEET_1 = 'Vigencia ';
 const TITLE_DEFAULT_SHEET_2 = 'Respuesta Comercial';
 
+type IDocType = 'specia_brief' | 'weekly_brief';
+
 export const build = ({
   readXlsxFile,
   writeXlsxFile,
@@ -60,7 +62,7 @@ export const build = ({
   decodeSheetRange,
   encodeCell
 }: Dependencies) => {
-  const execute = async (xlsxFile: Buffer, isSpecialBrief: boolean) => {
+  const execute = async (xlsxFile: Buffer, docType: IDocType) => {
     const result: fileResponse = {
       file: null,
       errors: []
@@ -83,7 +85,7 @@ export const build = ({
     const stylesDefaultSheet2 = copySheetWithStyles(defaultSheetPage2, DEFAULT_STYLES_PAGE2, customWidths);
     convertWorkSheetToWorkBook(workbookToExport, stylesDefaultSheet1, TITLE_DEFAULT_SHEET_1);
 
-    const titlesToProcess = isSpecialBrief ? EXCEL_EXPORTED_TITLES_SEPCIAL : EXCEL_EXPORTED_TITLES;
+    const titlesToProcess = docType == 'specia_brief' ? EXCEL_EXPORTED_TITLES_SPECIAL : EXCEL_EXPORTED_TITLES;
     //** Proccess */
     workbook.SheetNames.forEach((sheetName) => {
       const worksheet = workbook.Sheets[sheetName];
@@ -94,7 +96,7 @@ export const build = ({
       const titlesOriginalRow = originalSheetInfoArray[indexOriginSheetTitleStarts !== -1 ? indexOriginSheetTitleStarts : 6]; //Si no encuentra el titulo, asume que la fila 6 tiene los titulos
       const titlesOriginalRowString = convertRowDataToStringArray(titlesOriginalRow);
 
-      validateAllColumnsExists(originalSheetInfoArray, result, sheetName, titlesOriginalRowString, isSpecialBrief);
+      validateAllColumnsExists(originalSheetInfoArray, result, sheetName, titlesOriginalRowString, docType);
       const convertedData = processSheet(originalSheetInfoArray, indexOriginSheetTitleStarts, titlesOriginalRowString, [
         ...titlesToProcess
       ]);
@@ -126,14 +128,14 @@ export const build = ({
     result: fileResponse,
     sheetName: string,
     titlesOriginalRow: string[],
-    isSpecialBrief: boolean
+    docType: IDocType
   ) => {
     if (originalSheetInfoArray.length === 0) return; //Columnas vacias no se procesan
     const allClear = originalSheetInfoArray.every((array) => array.length === 0);
     if (allClear) return;
 
     //Algunos titulos tienen el salto de linea \n, por lo que se eliminan para comparar
-    const fieldsToProcess = isSpecialBrief ? REQUIRED_FIELDS_SPECIAL : REQUIRED_FIELDS;
+    const fieldsToProcess = docType === 'specia_brief' ? REQUIRED_FIELDS_SPECIAL : REQUIRED_FIELDS;
     const reqTitlesWithoutBreakLine = fieldsToProcess.map((item) => deleteLineBreakString(item));
     const missingColumns = reqTitlesWithoutBreakLine.filter((item) => !titlesOriginalRow.includes(`${item}`));
     if (missingColumns.length > 0) {
