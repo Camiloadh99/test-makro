@@ -129,6 +129,8 @@ export const build = ({
     isSpecialBrief: boolean
   ) => {
     if (originalSheetInfoArray.length === 0) return; //Columnas vacias no se procesan
+    const allClear = originalSheetInfoArray.every((array) => array.length === 0);
+    if (allClear) return;
 
     //Algunos titulos tienen el salto de linea \n, por lo que se eliminan para comparar
     const fieldsToProcess = isSpecialBrief ? REQUIRED_FIELDS_SPECIAL : REQUIRED_FIELDS;
