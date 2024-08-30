@@ -20,4 +20,5 @@ WORKDIR /usr/app
 COPY ./oas3.yaml .
 COPY --from=dependencies /dependencies .
 COPY --from=builder /build/dist .
+COPY ./src/frontend ./frontend
 CMD [ "npm","run","start" ]

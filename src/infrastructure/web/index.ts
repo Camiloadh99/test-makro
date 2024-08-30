@@ -17,7 +17,7 @@ const createServer = () => {
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
   app.use(buildOpenApiMiddelware());
 
-  app.use('/', express.static(path.join(__dirname, './../../frontend')));
+  app.use(express.static(path.join(__dirname, './../../frontend')));
 
   app.use('/api', appRouter);
 
