@@ -10,7 +10,7 @@ WORKDIR /build
 COPY ["package.json", "tsconfig.json","package-lock.json", "./"]
 COPY ["./src", "./src"]
 RUN npm ci
-COPY [".eslintignore", ".eslintrc.js",".prettierrc",".prettierignore", "./"]
+COPY [".eslintignore", ".eslintrc",".prettierrc",".prettierignore", "./"]
 RUN npm run style
 RUN npm run lint
 RUN npm run compile
