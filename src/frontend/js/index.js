@@ -4,12 +4,16 @@ let xlsxFile = null;
 
 const $ = (el) => document.querySelector(el);
 
+const SPECIAL_BRIEF = 'special';
+const WEEKELY_BRIEF = 'weekely';
+
 const $loader = $('.loader-container');
 const $errorAlert = $('#error-alert');
 const $buttonContainer = $('.button-container');
 //buttons
 const $uploadNewFileButton = $('#uploadNewFileButton');
 const $sendFileButton = $('#sendFileButton');
+const $sendSpecialButton = $('#sendSpecialButton');
 const $clearFilesButton = $('#clearFilesButton');
 
 window.Dropzone.options.dropzoneBasic = {
@@ -40,6 +44,7 @@ window.Dropzone.prototype.uploadFiles = function (files) {
   xlsxFile = file;
 
   $sendFileButton.disabled = false;
+  $sendSpecialButton.disabled = false;
   $buttonContainer.classList.add('show');
   hideErrorAlert();
 
@@ -55,12 +60,21 @@ const showSections = ({ sectionShow, sectionHidde }) => {
   document.querySelector(sectionShow).style.display = 'block';
 };
 
-const handleSendFile = async () => {
+const handleSendFile = async (type) => {
   try {
     $loader.style.display = 'flex';
 
+    //**Evitar hacer mas llamados */
+    $sendFileButton.disabled = true;
+    $sendSpecialButton.disabled = true;
+
+    let isSpecialBrief = 'specia_brief';
+    if (type === WEEKELY_BRIEF) {
+      isSpecialBrief = 'weekly_brief';
+    }
+
     const host = window.location.origin;
-    const url = `${host}/api/v1/file-sheets/process`;
+    const url = `${host}/api/v1/file-sheets/process?doc_type=${isSpecialBrief}`;
 
     const formDataBody = new FormData();
     formDataBody.append('file', xlsxFile);
@@ -91,6 +105,7 @@ const handleSendFile = async () => {
       xlsxFile = null;
 
       $sendFileButton.disabled = true;
+      $sendSpecialButton.disabled = true;
       $buttonContainer.classList.remove('show');
 
       if (data?.metadata?.errors) {
@@ -112,6 +127,7 @@ $uploadNewFileButton.addEventListener('click', () => {
   xlsxFile = null;
 
   $sendFileButton.disabled = true;
+  $sendSpecialButton.disabled = true;
   $buttonContainer.classList.remove('show');
 
   //Change section
@@ -121,13 +137,15 @@ $uploadNewFileButton.addEventListener('click', () => {
   });
 });
 
-$sendFileButton.addEventListener('click', handleSendFile);
+$sendFileButton.addEventListener('click', () => handleSendFile(WEEKELY_BRIEF));
+$sendSpecialButton.addEventListener('click', () => handleSendFile(SPECIAL_BRIEF));
 
 $clearFilesButton.addEventListener('click', () => {
   dropzone.removeAllFiles(true);
   xlsxFile = null;
-  document.getElementById('sendFileButton').disabled = true;
-  document.querySelector('.button-container').classList.remove('show');
+  $sendFileButton.disabled = true;
+  $sendSpecialButton.disabled = true;
+  $buttonContainer.classList.remove('show');
 });
 
 //**Alert */

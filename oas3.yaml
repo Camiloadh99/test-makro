@@ -16,6 +16,14 @@ paths:
       tags:
         - file-sheets
       summary: Process xlsx file
+      parameters:
+        - in: query
+          name: doc_type
+          schema:
+            type: string
+            enum: [specia_brief, weekly_brief]
+          required: false
+          description: is special brief
       requestBody:
         content:
           multipart/form-data:

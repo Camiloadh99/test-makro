@@ -1,4 +1,11 @@
-import { EXCEL_EXPORTED_TITLES, EXCEL_EXPORTED_TITLE_COLORS, fileResponse, REQUIRED_FIELDS } from '@domain/entities/excel_makro.entity';
+import {
+  EXCEL_EXPORTED_TITLES,
+  EXCEL_EXPORTED_TITLE_COLORS,
+  fileResponse,
+  REQUIRED_FIELDS,
+  REQUIRED_FIELDS_SPECIAL,
+  EXCEL_EXPORTED_TITLES_SPECIAL
+} from '@domain/entities/excel_makro.entity';
 import {
   convertRowDataToStringArray,
   deleteLineBreakString,
@@ -43,6 +50,8 @@ const ROW_TITLE_UNITS = 'Unidades Disponibles';
 const TITLE_DEFAULT_SHEET_1 = 'Vigencia ';
 const TITLE_DEFAULT_SHEET_2 = 'Respuesta Comercial';
 
+type IDocType = 'specia_brief' | 'weekly_brief';
+
 export const build = ({
   readXlsxFile,
   writeXlsxFile,
@@ -53,7 +62,7 @@ export const build = ({
   decodeSheetRange,
   encodeCell
 }: Dependencies) => {
-  const execute = async (xlsxFile: Buffer) => {
+  const execute = async (xlsxFile: Buffer, docType: IDocType) => {
     const result: fileResponse = {
       file: null,
       errors: []
@@ -76,18 +85,21 @@ export const build = ({
     const stylesDefaultSheet2 = copySheetWithStyles(defaultSheetPage2, DEFAULT_STYLES_PAGE2, customWidths);
     convertWorkSheetToWorkBook(workbookToExport, stylesDefaultSheet1, TITLE_DEFAULT_SHEET_1);
 
+    const titlesToProcess = docType == 'specia_brief' ? EXCEL_EXPORTED_TITLES_SPECIAL : EXCEL_EXPORTED_TITLES;
     //** Proccess */
     workbook.SheetNames.forEach((sheetName) => {
       const worksheet = workbook.Sheets[sheetName];
 
       const originalSheetInfoArray = convertWorkSheetToJsonData(worksheet); //convertir la hoja a un array con los elementos internos
 
-      const indexOriginSheetTitleStarts = findIndexOnMatrix(originalSheetInfoArray, [...EXCEL_EXPORTED_TITLES]);
+      const indexOriginSheetTitleStarts = findIndexOnMatrix(originalSheetInfoArray, [...titlesToProcess]);
       const titlesOriginalRow = originalSheetInfoArray[indexOriginSheetTitleStarts !== -1 ? indexOriginSheetTitleStarts : 6]; //Si no encuentra el titulo, asume que la fila 6 tiene los titulos
       const titlesOriginalRowString = convertRowDataToStringArray(titlesOriginalRow);
 
-      validateAllColumnsExists(originalSheetInfoArray, result, sheetName, titlesOriginalRowString);
-      const convertedData = processSheet(originalSheetInfoArray, indexOriginSheetTitleStarts, titlesOriginalRowString);
+      validateAllColumnsExists(originalSheetInfoArray, result, sheetName, titlesOriginalRowString, docType);
+      const convertedData = processSheet(originalSheetInfoArray, indexOriginSheetTitleStarts, titlesOriginalRowString, [
+        ...titlesToProcess
+      ]);
 
       if (result.errors.length > 0) return;
 
@@ -115,12 +127,16 @@ export const build = ({
     originalSheetInfoArray: RowData[][],
     result: fileResponse,
     sheetName: string,
-    titlesOriginalRow: string[]
+    titlesOriginalRow: string[],
+    docType: IDocType
   ) => {
     if (originalSheetInfoArray.length === 0) return; //Columnas vacias no se procesan
+    const allClear = originalSheetInfoArray.every((array) => array.length === 0);
+    if (allClear) return;
 
     //Algunos titulos tienen el salto de linea \n, por lo que se eliminan para comparar
-    const reqTitlesWithoutBreakLine = REQUIRED_FIELDS.map((item) => deleteLineBreakString(item));
+    const fieldsToProcess = docType === 'specia_brief' ? REQUIRED_FIELDS_SPECIAL : REQUIRED_FIELDS;
+    const reqTitlesWithoutBreakLine = fieldsToProcess.map((item) => deleteLineBreakString(item));
     const missingColumns = reqTitlesWithoutBreakLine.filter((item) => !titlesOriginalRow.includes(`${item}`));
     if (missingColumns.length > 0) {
       if (missingColumns.length < 10) {
@@ -135,14 +151,15 @@ export const build = ({
   const processSheet = (
     originalSheetInfoArray: RowData[][],
     indexOriginalTitleStarts: number,
-    titlesOriginalRow: string[]
+    titlesOriginalRow: string[],
+    titlesToProcess: string[]
   ): { noOfferByRow: number[]; newFile: RowData[][] } => {
     if (originalSheetInfoArray.length === 0 || titlesOriginalRow.length === 0) return { newFile: originalSheetInfoArray, noOfferByRow: [] }; //Columnas vacias no se procesan
 
     const newJsonDataToExport: RowData[][] = [];
     const noOfferByRow: number[] = [];
 
-    const newTitles = [...EXCEL_EXPORTED_TITLES];
+    const newTitles = [...titlesToProcess];
 
     newJsonDataToExport.push(newTitles.map((item: string) => deleteLineBreakString(item)) as string[]);
 

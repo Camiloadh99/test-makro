@@ -24,7 +24,28 @@ export const REQUIRED_FIELDS = Object.freeze([
   'Q Maxima por Cliente'
 ]);
 
+//** Para procesar el brief especial */
+export const REQUIRED_FIELDS_SPECIAL = Object.freeze([
+  'Departamento',
+  'Código',
+  'Descripcion',
+  'No Oferta',
+  'Descripcion Brief',
+  'Excepciones / Comentarios',
+  'PVP Regular Sugerido',
+  'PVP Regular con Descuento',
+  'Descuento\r\nen Porcentaje %',
+  'Escala',
+  'Unidades Disponibles',
+  'Q Maxima por Cliente'
+]);
+
 export const EXCEL_EXPORTED_TITLES = Object.freeze(['Check Revision', 'CÓD. Código / Unidades Disponibles UND*', ...REQUIRED_FIELDS]);
+export const EXCEL_EXPORTED_TITLES_SPECIAL = Object.freeze([
+  'Check Revision',
+  'CÓD. Código / Unidades Disponibles UND*',
+  ...REQUIRED_FIELDS_SPECIAL
+]);
 
 export const EXCEL_EXPORTED_TITLE_COLORS = Object.freeze([
   '999999',
