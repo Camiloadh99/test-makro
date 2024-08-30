@@ -4,10 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node -r tsconfig-paths/register ./src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "NODE_ENV=development nodemon -r dotenv/config",
     "debug": "NODE_ENV=development nodemon --config nodemon.debug.json | pino-pretty",
-    "compile": "tsc --outDir ./build/dist"
+    "compile": "tsc --outDir /build/dist",
+    "lint": "eslint . --ext .ts --quiet",
+    "style": "prettier --check ./src"
   },
   "keywords": [],
   "author": "",
